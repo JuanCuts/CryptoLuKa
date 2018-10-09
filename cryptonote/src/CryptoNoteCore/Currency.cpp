@@ -99,7 +99,7 @@ bool Currency::generateGenesisBlock() {
   //std::string hex_tx_represent = Common::toHex(txb);
 
   // Hard code coinbase tx in genesis block, because through generating tx use random, but genesis should be always the same
-  std::string genesisCoinbaseTxHex = "010a01ff00018080d287e2bc2d02400fa471f42b5d2619835d5387609df104b3af197de62c638ae0d518d9d06b3a2101cf744b38fb9843560d7bff26c5b25350bdb4c5fdde62a63b62aea829cc643491";
+  std::string genesisCoinbaseTxHex = "0x63221af9e";
   BinaryArray minerTxBlob;
 
   bool r =
@@ -166,7 +166,7 @@ uint32_t Currency::upgradeHeight(uint8_t majorVersion) const {
     return static_cast<uint32_t>(-1);
   }
 }
-
+/*Valida cada vez que un nuevo bloque llega pasa por aca, cuando se mina y esta el bloque pasa por este metodo, */
 bool Currency::getBlockReward(uint8_t blockMajorVersion, size_t medianSize, size_t currentBlockSize, uint64_t alreadyGeneratedCoins,
   uint64_t fee, uint64_t& reward, int64_t& emissionChange) const {
 
@@ -174,21 +174,8 @@ bool Currency::getBlockReward(uint8_t blockMajorVersion, size_t medianSize, size
 
   // LUK REWARD CHANGES
   uint64_t baseReward;
-  uint64_t factorCut = 44500000; // 0.445 LUK
-  uint64_t coinCut_v1 = 264000000000000; // 2.64M LUK
-  uint64_t coinCut_v2 = 292000000000000; // 2.92M LUK
-
-  if(alreadyGeneratedCoins < coinCut_v1) {
     // 100M >> 22
-    baseReward = (m_moneySupply - alreadyGeneratedCoins) >> m_emissionSpeedFactor;
- } else if (alreadyGeneratedCoins >= coinCut_v1 && alreadyGeneratedCoins <= coinCut_v2) {
-    // 100M -> 0,445
-    baseReward = factorCut;
- } else {
-    // 100M >> 22
-    baseReward = (m_moneySupply - alreadyGeneratedCoins) >> m_emissionSpeedFactor;
- }
-
+  baseReward = (m_moneySupply - alreadyGeneratedCoins) >> m_emissionSpeedFactor
 
   //infinite minimal block rewards after block reward falls under m_finalSubsidy per minute
   uint64_t subsidyTarget = m_difficultyTarget / 60 * m_finalSubsidy;
@@ -196,13 +183,17 @@ bool Currency::getBlockReward(uint8_t blockMajorVersion, size_t medianSize, size
 	  baseReward = subsidyTarget; // Subsidy 0.20 LUK
   }
 
+/*El tamaño de los bloques calculado por la mediana*/
   size_t blockGrantedFullRewardZone = blockGrantedFullRewardZoneByBlockVersion(blockMajorVersion);
   medianSize = std::max(medianSize, blockGrantedFullRewardZone);
   if (currentBlockSize > UINT64_C(2) * medianSize) {
     logger(TRACE) << "Block cumulative size is too big: " << currentBlockSize << ", expected less than " << 2 * medianSize;
     return false;
   }
-
+/*Si el bloque inicia con un tamaño y termina con otro se penaliza*/
+/*Si el bloque inicia con un tamaño y termina con otro se penaliza*/
+/*Si las monedas generadas son mayor a cero y si es menor a la recomponsa normal que da el bloque
+ejemplo: si siempre da 20 y en un momento cae en 40 se penaliza*/
   uint64_t penalizedBaseReward = getPenalizedAmount(baseReward, medianSize, currentBlockSize);
   uint64_t penalizedFee = blockMajorVersion >= BLOCK_MAJOR_VERSION_1 ? getPenalizedAmount(fee, medianSize, currentBlockSize) : fee;
 
