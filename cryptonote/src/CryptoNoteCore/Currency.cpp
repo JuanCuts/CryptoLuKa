@@ -175,7 +175,7 @@ bool Currency::getBlockReward(uint8_t blockMajorVersion, size_t medianSize, size
   // LUK REWARD CHANGES
   uint64_t baseReward;
     // 100M >> 22
-  baseReward = (m_moneySupply - alreadyGeneratedCoins) >> m_emissionSpeedFactor
+  baseReward = (m_moneySupply - alreadyGeneratedCoins) >> m_emissionSpeedFactor;
 
   //infinite minimal block rewards after block reward falls under m_finalSubsidy per minute
   uint64_t subsidyTarget = m_difficultyTarget / 60 * m_finalSubsidy;
